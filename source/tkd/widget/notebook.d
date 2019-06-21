@@ -206,6 +206,25 @@ class NoteBook : Widget
 	}
 
 	/**
+	 * Get a tab's state.
+	 *
+	 * Params:
+	 *     tabIdentifier = The zero based index or string id of the tab.
+	 *
+	 * Returns:
+	 *     This widget to aid method chaining.
+	 *
+	 * See_Also:
+	 *     $(LINK2 ./state.html, tkd.widget.state) for states.
+	 */
+	public auto getTabState(this T, I)(I tabIdentifier) if (is(I == int) || is(I == string))
+	{
+		this._tk.eval("%s tab %s -state", this.id, tabIdentifier);
+
+		return this._tk.getResult!(string);
+	}
+
+	/**
 	 * Set a tab pane's sticky state. Specifies how the slave widget is 
 	 * positioned within the pane area. Sticky state is a string containing 
 	 * zero or more of the characters n, s, e, or w. Each letter refers to a 
@@ -263,6 +282,18 @@ class NoteBook : Widget
 		this._tk.eval(script);
 
 		return cast(T) this;
+	}
+
+	public string getTabText(this T, I)(I tabIdentifier) if (is(I == int) || is(I == string))
+	{
+		// String concatenation is used to build the script here instead of 
+		// using format specifiers to enable supporting input which includes 
+		// Tcl/Tk reserved characters and elements that could be construed as 
+		// format specifiers.
+		string script = std.conv.text(this.id, ` tab `, tabIdentifier, ` -text`);
+		this._tk.eval(script);
+
+		return this._tk.getResult!(string);
 	}
 
 	/**
@@ -392,6 +423,17 @@ class NoteBook : Widget
 	public int getNumberOfTabs()
 	{
 		return this.getTabIndexById("end");
+	}
+
+	/**
+	 * Get the id of the currently selected tab.
+	 *
+	 * Returns:
+	 *     The id of the tab.
+	 */
+	public int getCurrentTabId()
+	{
+		return this.getTabIndexById("current");
 	}
 
 	/**

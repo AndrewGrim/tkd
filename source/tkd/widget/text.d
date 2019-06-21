@@ -13,7 +13,11 @@ import std.conv;
 import tkd.element.uielement;
 import tkd.image.image;
 import tkd.widget.common.border;
-import tkd.widget.common.color;
+import tkd.widget.common.backgroundcolor;
+import tkd.widget.common.foregroundcolor;
+import tkd.widget.common.selectionbackgroundcolor;
+import tkd.widget.common.selectionforegroundcolor;
+import tkd.widget.common.insertcolor;
 import tkd.widget.common.font;
 import tkd.widget.common.height;
 import tkd.widget.common.relief;
@@ -176,6 +180,7 @@ class Text : Widget, IXScrollable!(Text), IYScrollable!(Text)
 		this.setUndoSupport(true);
 		this.setUndoLevels(25);
 		this.setWrapMode(TextWrapMode.word);
+		// maybe hardcode the tabs to be smaller
 	}
 
 	/**
@@ -290,6 +295,28 @@ class Text : Widget, IXScrollable!(Text), IYScrollable!(Text)
 	}
 
 	/**
+	 * Appends text to the widget with specified tags.
+	 *
+	 * Params:
+	 *     text = The text to append.
+	 *     tags = The string specifying all the tags you want to use.
+	 *
+	 * Returns:
+	 *     This widget to aid method chaining.
+	 */
+	public auto appendText(this T)(string text, string tags = "")
+	{
+		// String concatenation is used to build the script here instead of 
+		// using format specifiers to enable supporting input which includes 
+		// Tcl/Tk reserved characters and elements that could be construed as 
+		// format specifiers.
+		string script = std.conv.text(this.id, ` insert end "`, this._tk.escape(text), `"`, ` `, tags);
+		this._tk.eval(script);
+
+		return cast(T) this;
+	}
+
+	/**
 	 * Inserts text into the widget at a specified line and character index.
 	 *
 	 * Params:
@@ -313,6 +340,53 @@ class Text : Widget, IXScrollable!(Text), IYScrollable!(Text)
 	}
 
 	/**
+	 * Inserts text into the widget at a specified line and character index with specified tags.
+	 *
+	 * Params:
+	 *     line = The line at which to insert the text. Indexes start at 1.
+	 *     character = The character at which to insert the text. Indexes start at 0.
+	 *     text = The text to insert.
+	 * 	   tags = The string specifying all the tags you want to use.
+	 *
+	 * Returns:
+	 *     This widget to aid method chaining.
+	 */
+	public auto insertText(this T)(int line, int character, string text, string tags = "")
+	{
+		// String concatenation is used to build the script here instead of 
+		// using format specifiers to enable supporting input which includes 
+		// Tcl/Tk reserved characters and elements that could be construed as 
+		// format specifiers.
+		string script = std.conv.text(this.id, ` insert `, line, `.`, character, ` "`, this._tk.escape(text), `"`, ` `, tags);
+		this._tk.eval(script);
+
+		return cast(T) this;
+	}
+
+	/**
+	 * Inserts text into the widget at a specified line and character index.
+	 *
+	 * Params:
+	 *     index = Composed of line and character. Line starts at 1 character starts at 0. Ex 1.0
+	 *     text = The text to insert.
+	 *     tags = The string specifying all the tags you want to use.
+	 *
+	 * Returns:
+	 *     This widget to aid method chaining.
+	 */
+	public auto insertText(this T)(string index, string text, string tags = "")
+	{
+		// String concatenation is used to build the script here instead of 
+		// using format specifiers to enable supporting input which includes 
+		// Tcl/Tk reserved characters and elements that could be construed as 
+		// format specifiers.
+		string script = std.conv.text(this.id, ` insert `, index, ` "`, this._tk.escape(text), `"`, ` `, tags);
+		this._tk.eval(script);
+
+		return cast(T) this;
+	}
+
+	/**
 	 * Get the text from the widget.
 	 *
 	 * Returns:
@@ -321,6 +395,49 @@ class Text : Widget, IXScrollable!(Text), IYScrollable!(Text)
 	public string getText(this T)()
 	{
 		this._tk.eval("%s get 0.0 end", this.id);
+
+		return this._tk.getResult!(string);
+	}
+
+	/**
+	 * Get the text from the specified range of the widget.
+	 *
+	 * Params:
+	 *     startIndex = Composed of line and character. Line starts at 1 character starts at 0. Ex 1.0
+	 *     stopIndex = Composed of line and character. Line starts at 1 character starts at 0. Ex 1.0
+	 *
+	 * Returns:
+	 *     The text from the widget.
+	 */
+	public string getText(this T)(string startIndex, string stopIndex)
+	{
+		this._tk.eval("%s get %s %s", this.id, startIndex, stopIndex);
+
+		return this._tk.getResult!(string);
+	}
+
+	/**
+	 * Get the specified line from the widget.
+	 *
+	 * Returns:
+	 *     The line from the widget.
+	 */
+	public string getLine(this T)(int line)
+	{
+		this._tk.eval("%s get %s.0 %s.0", this.id, line, line + 1);
+
+		return this._tk.getResult!(string);
+	}
+
+	/**
+	 * Get the specified part of the line from the widget.
+	 *
+	 * Returns:
+	 *     The partial line from the widget.
+	 */
+	public string getPartialLine(this T)(int line, int character)
+	{
+		this._tk.eval("%s get %s.%s %s.0", this.id, line, character, line + 1);
 
 		return this._tk.getResult!(string);
 	}
@@ -340,6 +457,23 @@ class Text : Widget, IXScrollable!(Text), IYScrollable!(Text)
 	public auto deleteText(this T)(int fromLine, int fromChar, int toLine, int toChar)
 	{
 		this._tk.eval("%s delete %s.%s %s.%s", this.id, fromLine, fromChar, toLine, toChar);
+
+		return cast(T) this;
+	}
+
+	/**
+	 * Delete text from the widget.
+	 *
+	 * Params:
+	 *     fromIndex = The beginning index as a string. Indexes for lines start at 1, for characters at 0.
+	 *     toIndex = The ending index as a string. Indexes for lines start at 1, for characters at 0.
+	 *
+	 * Returns:
+	 *     This widget to aid method chaining.
+	 */
+	public auto deleteText(this T)(string fromIndex, string toIndex)
+	{
+		this._tk.eval("%s delete %s %s", this.id, fromIndex, toIndex);
 
 		return cast(T) this;
 	}
@@ -495,10 +629,228 @@ class Text : Widget, IXScrollable!(Text), IYScrollable!(Text)
 	}
 
 	/**
+	 * Add tag to the text between the specified indexes.
+	 *
+	 * Params:
+	 *     tagName = The name given to the tag.
+	 *     startIndex = The starting position of the tag.
+	 * 	   stopIndex = The ending position of the tag.
+	 *
+ 	 * Returns:
+	 *     This widget to aid method chaining.
+	 */
+	public auto addTag(this T)(string tagName, string startIndex, string stopIndex)
+	{
+		this._tk.eval("%s tag add %s %s %s", this.id, tagName, startIndex, stopIndex);
+	
+		return cast(T) this;
+	}
+
+	/**
+	 * Remove tag from the text between the specified indexes.
+	 *
+	 * Params:
+	 *     tagName = The name given to the tag.
+	 *     startIndex = The starting position of the tag.
+	 * 	   stopIndex = The ending position of the tag.
+	 *
+ 	 * Returns:
+	 *     This widget to aid method chaining.
+	 */
+	public auto removeTag(this T)(string tagName, string startIndex, string stopIndex)
+	{
+		this._tk.eval("%s tag remove %s %s %s", this.id, tagName, startIndex, stopIndex);
+	
+		return cast(T) this;
+	}
+
+	/**
+	 * Checks for the number of lines in the text.
+	 *
+ 	 * Returns:
+	 *     The number of lines.
+	 */
+	public string getNumberOfLines(this T)()
+	{
+		this._tk.eval("%s index end", this.id);
+	
+		return this._tk.getResult!(string);
+	}
+
+	/**
+	 * Checks the length of the specified line.
+	 *
+ 	 * Returns:
+	 *     The length of the line.
+	 */
+	public string getLineLength(this T)(int line)
+	{
+		this._tk.eval("%s index %s.end", this.id, line);
+	
+		return this._tk.getResult!(string);
+	}
+
+	/**
+	 * Configure tag to changes its options.
+	 *
+	 * Params:
+	 *     tagName = The name of the tag.
+	 *     tagOptions = The string containing all the desired options.
+	 *
+	 * Example:
+	 *		textWidget.configTag(tagName, "-background yellow -foreground blue -font "helvetica 14 bold" -relief raised");		
+	 *
+	 * Returns:
+	 *     This widget to aid method chaining.
+	 */
+	public auto configTag(this T)(string tagName, string tagOptions)
+	{
+		this._tk.eval("%s tag configure %s %s", this.id, tagName, tagOptions);
+	
+		return cast(T) this;
+	} 
+
+	/**
+	 * Search for pattern within the text.
+	 *
+	 * Params:
+	 *     pattern = The pattern to look for.
+	 *
+	 * Returns:
+	 *     The string containing the index of the pattern.
+	 */
+	public string find(this T)(string pattern) 
+	{
+		this._tk.eval("%s search {%s} 1.0 end", this.id, pattern);
+	
+		return this._tk.getResult!(string);
+	}
+
+	/**
+	 * Search for pattern within a specific range of the text.
+	 *
+	 * Params:
+	 *     pattern = The pattern to look for.
+	 *     startIndex = The index to start the search at.
+	 *     stopIndex = The index to stop the search at.
+	 *
+	 * Returns:
+	 *     The string containing the index of the pattern.
+	 */
+	public string find(this T)(string pattern, string startIndex, string stopIndex) 
+	{
+		this._tk.eval("%s search {%s} %s %s", this.id, pattern, startIndex, stopIndex);
+	
+		return this._tk.getResult!(string);
+	}
+
+	/**
+	 * Search for all occurances of the pattern within the text.
+	 *
+	 * Params:
+	 *     pattern = The pattern to look for.
+	 *
+	 * Returns:
+	 *     The string array containing the indexes of all the found occurances of the pattern.
+	 */
+	public string[] findAll(this T)(string pattern) 
+	{
+		import std.string : split;
+
+		this._tk.eval("%s search -all -- {%s} 1.0 end", this.id, pattern);
+		string[] result = this._tk.getResult!(string).split();
+
+		return result;
+	}
+
+	/**
+	 * Set the exportSelection option of the widget.
+	 *
+	 * Params:
+	 *     exportSelection = The bool value that sets the exportSelection.
+	 *
+	 * Returns:
+	 *     This widget to aid method chaining.
+	 */
+	public auto setExportSelection(this T)(bool exportSelection)
+	{
+		this._tk.eval("%s -exportselection %s", this.id, exportSelection);
+	
+		return cast(T) this;
+	} 
+
+	/**
+	 * Set the modified flag of the widget.
+	 *
+	 * Params:
+	 *     modified = The bool value that sets modified flag.
+	 *
+	 * Returns:
+	 *     This widget to aid method chaining.
+	 */
+	public auto setModified(this T)(bool modified)
+	{
+		this._tk.eval("%s edit modified %s", this.id, modified);
+	
+		return cast(T) this;
+	} 
+
+	/**
+	 * Get the modified flag of the widget.
+	 *
+	 * Returns:
+	 *     The modified flag as a bool.
+	 */
+	public bool getModified(this T)()
+	{
+		import std.conv : to;
+
+		this._tk.eval("%s edit modified", this.id);
+		bool result = this._tk.getResult!(int).to!bool;
+
+		return result;
+	} 	
+
+	/**
+	 * Search for all occurances of the tag within the text.
+	 *
+	 * Params:
+	 *     tagName = The tag name to signify which tag to look for.
+	 *
+	 * Returns:
+	 *     The string containing the ranges of all the found occurances of the tag, separated with whitespace.
+	 */
+	public string getTagRanges(this T)(string tagName) 
+	{
+		import std.string : split;
+
+		this._tk.eval("%s tag ranges %s", this.id, tagName);
+
+		return this._tk.getResult!(string);
+	}
+
+	/**
+	 * Gets the insertion cursor index.
+	 *
+	 * Returns:
+	 *     The string containing the index of the insert cursor.
+	 */
+	public string getInsertCursorIndex(this T)() 
+	{
+		this._tk.eval("%s index insert", this.id);
+
+		return this._tk.getResult!(string);
+	}
+
+	/**
 	 * Mixin common commands.
 	 */
 	mixin Border;
-	mixin Color;
+	mixin BackgroundColor;
+    mixin ForegroundColor;
+	mixin SelectionBackgroundColor;
+    mixin SelectionForegroundColor;
+    mixin InsertColor;
 	mixin Font;
 	mixin Height;
 	mixin Relief;
