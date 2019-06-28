@@ -14,6 +14,7 @@ mixin template Font()
 	import std.array : join;
 	import std.conv : to;
 	import tkd.element.fontstyle;
+	import std.string;
 
 	/**
 	 * Set the font and style for the widget.
@@ -67,5 +68,15 @@ mixin template Font()
 		this._tk.eval("%s configure -font {%s}", this.id, fontInfo);
 
 		return cast(T) this;
+	}
+
+	public string getFont()
+	{
+		this._tk.eval(format("%s cget -font", this.id));
+		if (this._tk.getResult!(string).empty())
+		{
+			this._tk.eval(format("winfo font %s", this.id));
+		}
+		return this._tk.getResult!(string);
 	}
 }

@@ -13,7 +13,7 @@ import std.conv;
 import std.string;
 import tkd.element.element : CommandCallback;
 import tkd.element.uielement;
-import tkd.widget.common.color;
+import tkd.widget.common.backgroundcolor;
 import tkd.image.image;
 import tkd.interpreter;
 
@@ -319,6 +319,40 @@ class Window : UiElement
 	}
 
 	/**
+	 * Set the size and postition of the window using a single string.
+	 * This allows you to pass either the size or the position or both attributes of the window.
+	 *
+	 * Params:
+	 * 		geometryInfo = The string containing the size and position of the window.
+	 *
+	 * Returns:
+	 *     This window to aid method chaining.
+	 */
+	public auto setGeometry(this T)(string geometryInfo)
+	{
+		this._tk.eval("wm geometry %s %s", this.id, geometryInfo);
+		
+		return cast(T) this;
+	}
+
+	/**
+	 * Set the postition of the window.
+	 *
+	 * Params:
+	 *     xPos = The horizontal position of the window.
+	 *     yPos = The vertical position of the window.
+	 *
+	 * Returns:
+	 *     This window to aid method chaining.
+	 */
+	public auto setWindowPositon(this T)(int xPos, int yPos)
+	{
+		this._tk.eval("wm geometry %s +%s+%s", this.id, xPos, yPos);
+		
+		return cast(T) this;
+	}
+
+	/**
 	 * Set the default icon for this window. This is applied to all future 
 	 * child windows as well.
 	 *
@@ -608,7 +642,7 @@ class Window : UiElement
 	/**
 	 * Mixin common commands.
 	 */
-	mixin Color;
+	mixin BackgroundColor;
 }
 
 /**
