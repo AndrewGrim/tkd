@@ -1,0 +1,40 @@
+{
+	"authors": [
+		"Gary Willoughby"
+	],
+	"configurations": [
+		{
+			"excludedSourceFiles": [
+				"source/example/*"
+			],
+			"name": "library",
+			"targetPath": "build",
+			"targetType": "library"
+		},
+		{
+			"mainSourceFile": "source/example/example.d",
+			"name": "example",
+			"stringImportPaths": [
+				"source/example/media"
+			],
+			"targetName": "example",
+			"targetPath": "build/example",
+			"targetType": "executable"
+		}
+	],
+	"copyright": "Copyright (c) 2014 Gary Willoughby",
+	"dependencies": {
+		"tcltk": ">=8.6.5"
+	},
+	"description": "GUI toolkit for the D programming language based on Tcl/Tk",
+	"homepage": "https://github.com/nomad-software/tkd",
+	"importPaths": [
+		"source/"
+	],
+	"license": "MIT",
+	"name": "tkd",
+	"sourcePaths": [
+		"source/"
+	],
+	"version": "1.1.99"
+}

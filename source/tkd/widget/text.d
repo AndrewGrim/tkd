@@ -180,7 +180,6 @@ class Text : Widget, IXScrollable!(Text), IYScrollable!(Text)
 		this.setUndoSupport(true);
 		this.setUndoLevels(25);
 		this.setWrapMode(TextWrapMode.word);
-		// maybe hardcode the tabs to be smaller
 	}
 
 	/**
@@ -443,6 +442,20 @@ class Text : Widget, IXScrollable!(Text), IYScrollable!(Text)
 	}
 
 	/**
+	 * Get the specified character from the widget.
+	 *
+	 * Returns:
+	 *     The character as a string from the widget.
+	 */
+	public string getChar(this T)(int line, int character)
+	{
+		this._tk.eval("%s get %s.%s %s.%s", this.id, line, character, line, character + 1);
+
+		return this._tk.getResult!(string);
+	}
+
+
+	/**
 	 * Delete text from the widget.
 	 *
 	 * Params:
@@ -590,6 +603,25 @@ class Text : Widget, IXScrollable!(Text), IYScrollable!(Text)
 	}
 
 	/**
+	 * See a particular text index. The text widget automatically scrolls to 
+	 * see the passed indexes.
+	 *
+	 * Params:
+	 *     position = The index in the text you wish to seek to.
+	 *
+	 * Example: 1.end - the end of the first line.
+	 *
+	 * Returns:
+	 *     This widget to aid method chaining.
+	 */
+	public auto seeText(this T)(string position)
+	{
+		this._tk.eval("%s see %s", this.id, position);
+
+		return cast(T) this;
+	}
+
+	/**
 	 * Cut the selected text to the clipboard.
 	 *
 	 * Returns:
@@ -727,6 +759,43 @@ class Text : Widget, IXScrollable!(Text), IYScrollable!(Text)
 	}
 
 	/**
+	 * Search for pattern within the specified line.
+	 *
+	 * Params:
+	 *     pattern = The pattern to look for.
+	 *	   line = The line which to look through.
+	 *
+	 * Returns:
+	 *     The string containing the index of the pattern.
+	 */
+	public string findInLine(this T)(string pattern, int line) 
+	{
+		this._tk.eval("%s search {%s} %s.0 %s.end", this.id, pattern, line, line);
+	
+		return this._tk.getResult!(string);
+	}
+
+	/**
+	 * Search for all occurances of the pattern within the specified line.
+	 *
+	 * Params:
+	 *     pattern = The pattern to look for.
+	 *	   line = The line which to look through.
+	 *
+	 * Returns:
+	 *     The string array containing all the indexes of the pattern.
+	 */
+	public string[] findAllInLine(this T)(string pattern, int line) 
+	{
+		import std.string : split;
+
+		this._tk.eval("%s search -all -- {%s} %s.0 %s.end", this.id, pattern, line, line);
+		string[] result = this._tk.getResult!(string).split();
+
+		return result;
+	}
+
+	/**
 	 * Search for pattern within a specific range of the text.
 	 *
 	 * Params:
@@ -818,15 +887,16 @@ class Text : Widget, IXScrollable!(Text), IYScrollable!(Text)
 	 *     tagName = The tag name to signify which tag to look for.
 	 *
 	 * Returns:
-	 *     The string containing the ranges of all the found occurances of the tag, separated with whitespace.
+	 *     The string array containing the ranges of all the found occurances of the tag.
 	 */
-	public string getTagRanges(this T)(string tagName) 
+	public string[] getTagRanges(this T)(string tagName) 
 	{
 		import std.string : split;
 
 		this._tk.eval("%s tag ranges %s", this.id, tagName);
+		string[] result = this._tk.getResult!(string).split();
 
-		return this._tk.getResult!(string);
+		return result;
 	}
 
 	/**
@@ -840,6 +910,61 @@ class Text : Widget, IXScrollable!(Text), IYScrollable!(Text)
 		this._tk.eval("%s index insert", this.id);
 
 		return this._tk.getResult!(string);
+	}
+
+	/**
+	 * Sets the insertion cursor to the specified index.
+	 *
+	 * Returns:
+	 *     This widget to aid method chaining.
+	 */
+	public auto setInsertCursor(this T)(int line, int character) 
+	{
+		this._tk.eval("%s mark set insert %s.%s", this.id, line, character);
+
+		return cast(T) this;
+	}
+
+	/**
+	 * Sets the insertion cursor to the specified index.
+	 *
+	 * Returns:
+	 *     This widget to aid method chaining.
+	 */
+	public auto setInsertCursor(this T)(string position) 
+	{
+		this._tk.eval("%s mark set insert %s", this.id, position);
+
+		return cast(T) this;
+	}
+
+	/**
+	 * Sets the insertion cursor to the specified index.
+	 *
+	 * Returns:
+	 *     This widget to aid method chaining.
+	 */
+	public auto moveInsertCursorBack(this T)(int line, int character) 
+	{
+		this._tk.eval("%s mark set insert %s.%s", this.id, line, character - 2);
+
+		return cast(T) this;
+	}
+
+	/**
+	 * Get the all the present mark names as an array.
+	 *
+	 * Returns:
+	 *     The string array containing all the marks present in the widget text.
+	 */
+	public string[] getMarks(this T)() 
+	{
+		import std.string : split;
+
+		this._tk.eval("%s mark names", this.id);
+		string[] result = this._tk.getResult!(string).split();
+
+		return result;
 	}
 
 	/**

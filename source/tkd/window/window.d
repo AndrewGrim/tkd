@@ -579,7 +579,7 @@ class Window : UiElement
 	 *
 	 * Params:
 	 *     callback = The delegate function to be executed on idle.
-	 *     msDelay  = The delay in millisecond before executing the given callback.
+	 *     msDelay  = The delay in milliseconds before executing the given callback.
 	 *
 	 * Returns:
 	 *     This window to aid method chaining.
@@ -613,6 +613,45 @@ class Window : UiElement
 
 		string command = this.createCommand(callback, "idle");
 		this._tk.eval("after idle [list after %s %s]", msDelay.to!(string), command);
+
+		return cast(T) this;
+	}
+
+	/**
+	 * Execute callback command after delay.
+	 *
+	 * Params:
+	 *     callback = The function to be executed.
+	 *     msDelay  = The delay in milliseconds before executing the given callback.
+	 *
+	 * Returns:
+	 *     The string containing information used to cancel after commands.
+	 */
+	public string after(this T)(CommandCallback callback, int msDelay = 1)
+	{
+		assert(msDelay > 0, "The delay in milliseconds should be greater than zero.");
+
+		string command = this.createCommand(callback, "after");
+		this._tk.eval("after %s %s", msDelay.to!(string), command);
+
+		return this._tk.getResult!(string);
+	}
+
+	/**
+	 * Execute callback command after delay.
+	 *
+	 * Params:
+	 *     afterCommand = The entire after command you wish to cancel.
+	 *
+	 * Example:
+	 *	   mainWindow.cancelAfter(mainWindow.after(&changeTitle, 1500));
+	 *
+	 * Returns:
+	 *     This window to aid method chaining.
+	 */
+	public auto cancelAfter(this T)(string afterCommand)
+	{
+		this._tk.eval("after cancel %s", afterCommand);
 
 		return cast(T) this;
 	}

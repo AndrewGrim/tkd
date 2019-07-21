@@ -402,8 +402,7 @@ class NoteBook : Widget
 	}
 
 	/**
-	 * Get the tab index from its id. The id is the widget id that was added as 
-	 * the tab.
+	 * Get the tab index from its id. The id is the widget id that was added as the tab.
 	 *
 	 * Params:
 	 *     tabId = The tab id of the tab.

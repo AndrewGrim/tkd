@@ -680,6 +680,8 @@ abstract class UiElement : Element
 	 */
 	public void generateEvent(this T)(string event)
 	{
+		static import std.regex;
+
 		assert(!std.regex.match(event, r"^<.*?>$").empty, "Event must take the form of <binding>");
 
 		this._tk.eval("event generate %s %s", this.id, event);
